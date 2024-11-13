@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Download, Maximize2, Minimize2 } from 'lucide-react'
 import { generateImage, optimizePrompt } from '@/lib/api'
+import Image from 'next/image'
 
 export function AiImageGenerator() {
   const [prompt, setPrompt] = useState('')
@@ -138,9 +139,11 @@ export function AiImageGenerator() {
           <div className="md:w-1/2 p-6 flex flex-col items-center justify-center bg-gray-50">
             {generatedImage ? (
               <div className="relative">
-                <img
+                <Image
                   src={generatedImage}
                   alt="Generated image"
+                  width={512}
+                  height={512}
                   className={`rounded-lg shadow-md transition-all duration-300 ${
                     isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
                   }`}

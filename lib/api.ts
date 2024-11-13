@@ -28,7 +28,7 @@ export async function generateImage(prompt: string, model: string): Promise<stri
       body: JSON.stringify({
         messages: [{ role: 'user', content: prompt }],
         stream: true,
-        model: "flux-1-schnell",
+        model: model === 'default' ? "flux-1-schnell" : model,
         temperature: 0.5,
         presence_penalty: 0,
         frequency_penalty: 0,
