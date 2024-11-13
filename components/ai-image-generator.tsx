@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Download, Maximize2, Minimize2 } from 'lucide-react'
-import { generateImage } from '@/lib/api'
+import { generateImage, optimizePrompt } from '@/lib/api'
 
 export function AiImageGenerator() {
   const [prompt, setPrompt] = useState('')
@@ -15,6 +15,7 @@ export function AiImageGenerator() {
   const [generatedImage, setGeneratedImage] = useState('')
   const [isZoomed, setIsZoomed] = useState(false)
   const [showModels, setShowModels] = useState(true)
+  const [isOptimizing, setIsOptimizing] = useState(false)
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -42,9 +43,19 @@ export function AiImageGenerator() {
     document.body.removeChild(link)
   }
 
-  const optimizePrompt = () => {
-    const enhancedPrompt = `Create a highly detailed, professional image of: ${prompt}. Include specific details about lighting, perspective, and style.`
-    setPrompt(enhancedPrompt)
+  const handleOptimizePrompt = async () => {
+    if (!prompt.trim()) return;
+    
+    setIsOptimizing(true)
+    try {
+      const optimizedPrompt = await optimizePrompt(prompt)
+      setPrompt(optimizedPrompt)
+    } catch (error) {
+      console.error('Error optimizing prompt:', error)
+      // 可以添加错误提示
+    } finally {
+      setIsOptimizing(false)
+    }
   }
 
   return (
@@ -65,11 +76,19 @@ export function AiImageGenerator() {
                 className="min-h-[100px]"
               />
               <Button 
-                onClick={optimizePrompt}
+                onClick={handleOptimizePrompt}
                 variant="outline"
                 className="w-full"
+                disabled={isOptimizing || !prompt.trim()}
               >
-                Optimize Prompt
+                {isOptimizing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Optimizing...
+                  </>
+                ) : (
+                  'Optimize Prompt'
+                )}
               </Button>
             </div>
 
