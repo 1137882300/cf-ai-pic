@@ -88,7 +88,6 @@ export async function optimizePrompt(originalPrompt: string): Promise<string> {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${API_KEY}`,
-        // 'Priority': 'u=1, i'
       },
       body: JSON.stringify({
         messages: [{ role: 'user', content: originalPrompt }],
