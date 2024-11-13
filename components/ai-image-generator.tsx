@@ -111,9 +111,9 @@ export function AiImageGenerator() {
                     <SelectValue placeholder="Select a model" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="artistic">Artistic</SelectItem>
-                    <SelectItem value="photorealistic">Photorealistic</SelectItem>
+                    <SelectItem value="default">flux-1-schnell</SelectItem>
+                    <SelectItem value="artistic" disabled>Artistic</SelectItem>
+                    <SelectItem value="photorealistic" disabled>Photorealistic</SelectItem>
                   </SelectContent>
                 </Select>
               )}
