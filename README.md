@@ -144,3 +144,14 @@ pnpm build
 ## 许可证
 
 MIT License
+
+---
+
+## 版权与资源
+
+© 2024 AI Image Generator. All rights reserved.
+
+项目源码：[GitHub - cf-ai-pic](https://github.com/1137882300/cf-ai-pic)
+
+[![GitHub stars](https://img.shields.io/github/stars/1137882300/cf-ai-pic.svg?style=social&label=Star)](https://github.com/1137882300/cf-ai-pic)
+[![GitHub forks](https://img.shields.io/github/forks/1137882300/cf-ai-pic.svg?style=social&label=Fork)](https://github.com/1137882300/cf-ai-pic)

@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Download, Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, Download, Maximize2, Minimize2, ChevronLeft, ChevronRight, icons } from 'lucide-react'
 import { generateImage, optimizePrompt } from '@/lib/api'
 import Image from 'next/image'
+import Link from 'next/link'
+
+const Github = icons.Github
 
 export function AiImageGenerator() {
   const [prompt, setPrompt] = useState('')
@@ -76,7 +79,7 @@ export function AiImageGenerator() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
+    <div className="flex h-screen w-screen overflow-hidden relative">
       {/* 可收缩的左侧设置面板 */}
       <div 
         className={`bg-white border-r transition-all duration-300 ease-in-out overflow-y-auto relative
@@ -206,6 +209,20 @@ export function AiImageGenerator() {
             )}
           </div>
         )}
+      </div>
+
+      {/* 底部版权和 GitHub 链接 */}
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center text-gray-500 text-sm">
+        <div className="flex items-center space-x-2">
+          <span>© 2024 AI Image Generator</span>
+          <Link 
+            href="https://github.com/1137882300/cf-ai-pic" 
+            target="_blank" 
+            className="hover:text-gray-700 transition-colors"
+          >
+            <Github size={20} />
+          </Link>
+        </div>
       </div>
     </div>
   )
