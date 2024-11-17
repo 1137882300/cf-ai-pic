@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Download, Maximize2, Minimize2 } from 'lucide-react'
+import { Loader2, Download, Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { generateImage, optimizePrompt } from '@/lib/api'
 import Image from 'next/image'
 
@@ -15,9 +15,9 @@ export function AiImageGenerator() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImage, setGeneratedImage] = useState('')
   const [isZoomed, setIsZoomed] = useState(false)
-  const [showModels, setShowModels] = useState(true)
+  const [isSettingsPanelCollapsed, setIsSettingsPanelCollapsed] = useState(false)
   const [isOptimizing, setIsOptimizing] = useState(false)
-
+  
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
@@ -33,15 +33,31 @@ export function AiImageGenerator() {
     }
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!generatedImage) return;
     
-    const link = document.createElement('a')
-    link.href = generatedImage
-    link.download = `ai-generated-${Date.now()}.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      // 使用 Next.js API 路由作为代理下载
+      const response = await fetch(`/api/download-image?url=${encodeURIComponent(generatedImage)}`);
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+      
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `ai-generated-${Date.now()}.png`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // 可以添加用户友好的错误提示
+    }
   }
 
   const handleOptimizePrompt = async () => {
@@ -60,13 +76,28 @@ export function AiImageGenerator() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 p-4">
-      <div className="bg-white rounded-lg shadow-xl overflow-hidden max-w-6xl w-full">
-        <div className="flex flex-col md:flex-row">
-          {/* Left side - Controls */}
-          <div className="md:w-1/2 p-6 space-y-4">
+    <div className="flex h-screen w-screen overflow-hidden">
+      {/* 可收缩的左侧设置面板 */}
+      <div 
+        className={`bg-white border-r transition-all duration-300 ease-in-out overflow-y-auto relative
+          ${isSettingsPanelCollapsed ? 'w-16' : 'w-1/3'}`}
+      >
+        {/* 收缩/展开按钮 - 现在位于左侧面板的右上角 */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-4 right-4 z-10"
+          onClick={() => setIsSettingsPanelCollapsed(!isSettingsPanelCollapsed)}
+        >
+          {isSettingsPanelCollapsed ? <ChevronRight /> : <ChevronLeft />}
+        </Button>
+
+        {/* 设置内容 */}
+        {!isSettingsPanelCollapsed && (
+          <div className="p-6 space-y-4">
             <h1 className="text-2xl font-bold mb-4">AI Image Generator</h1>
             
+            {/* Prompt 和其他设置保持不变 */}
             <div className="space-y-2">
               <Label htmlFor="prompt">Prompt</Label>
               <Textarea
@@ -94,29 +125,17 @@ export function AiImageGenerator() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="model">Model</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowModels(!showModels)}
-                >
-                  {showModels ? 'Hide Models' : 'Show Models'}
-                </Button>
-              </div>
-              
-              {showModels && (
-                <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger id="model">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">flux-1-schnell</SelectItem>
-                    <SelectItem value="artistic" disabled>Artistic</SelectItem>
-                    <SelectItem value="photorealistic" disabled>Photorealistic</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              <Label htmlFor="model">Model</Label>
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger id="model">
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">flux-1-schnell</SelectItem>
+                  <SelectItem value="artistic" disabled>Artistic</SelectItem>
+                  <SelectItem value="photorealistic" disabled>Photorealistic</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Button 
@@ -134,56 +153,59 @@ export function AiImageGenerator() {
               )}
             </Button>
           </div>
+        )}
+      </div>
 
-          {/* Right side - Generated Image */}
-          <div className="md:w-1/2 p-6 flex flex-col items-center justify-center bg-gray-50">
-            {generatedImage ? (
-              <div className="relative">
-                <Image
-                  src={generatedImage}
-                  alt="Generated image"
-                  width={512}
-                  height={512}
-                  className={`rounded-lg shadow-md transition-all duration-300 ${
-                    isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
-                  }`}
-                  onClick={() => setIsZoomed(!isZoomed)}
-                />
-                <div className="absolute top-2 right-2 space-x-2">
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    onClick={() => setIsZoomed(!isZoomed)}
-                  >
-                    {isZoomed ? (
-                      <Minimize2 className="h-4 w-4" />
-                    ) : (
-                      <Maximize2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    onClick={handleDownload}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </div>
+      {/* 图像展示区域 */}
+      <div 
+        className={`flex-grow bg-gray-50 p-6 flex flex-col items-center justify-center 
+        transition-all duration-300 ease-in-out overflow-auto
+        ${isSettingsPanelCollapsed ? 'w-full' : 'w-2/3'}`}
+      >
+        {generatedImage ? (
+          <div className="relative max-w-full max-h-full">
+            <Image
+              src={generatedImage}
+              alt="Generated image"
+              width={512}
+              height={512}
+              className={`rounded-lg shadow-md transition-all duration-300 object-contain 
+                ${isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'}`}
+              onClick={() => setIsZoomed(!isZoomed)}
+            />
+            <div className="absolute top-2 right-2 space-x-2">
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={() => setIsZoomed(!isZoomed)}
+              >
+                {isZoomed ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={handleDownload}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">
+            {isGenerating ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-16 w-16 animate-spin mb-4" />
+                <p>Creating your masterpiece...</p>
               </div>
             ) : (
-              <div className="text-center text-gray-500">
-                {isGenerating ? (
-                  <div className="flex flex-col items-center">
-                    <Loader2 className="h-16 w-16 animate-spin mb-4" />
-                    <p>Creating your masterpiece...</p>
-                  </div>
-                ) : (
-                  <p>Your generated image will appear here</p>
-                )}
-              </div>
+              <p>Your generated image will appear here</p>
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
