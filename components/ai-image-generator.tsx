@@ -176,7 +176,7 @@ export function AiImageGenerator() {
                 placeholder="Describe the image you want to generate..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="min-h-[100px] focus:ring-2 focus:ring-purple-300 transition-all"
+                className="min-h-[250px] focus:ring-2 focus:ring-purple-300 transition-all"
               />
               <Button 
                 onClick={handleOptimizePrompt}
