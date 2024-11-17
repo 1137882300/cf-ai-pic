@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Download, Maximize2, Minimize2, ChevronLeft, ChevronRight, icons } from 'lucide-react'
+import { Loader2, Download, Maximize2, Minimize2, ChevronLeft, ChevronRight, Wand2, Sparkles, icons } from 'lucide-react'
 import { generateImage, optimizePrompt } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const Github = icons.Github
 
@@ -20,7 +21,15 @@ export function AiImageGenerator() {
   const [isZoomed, setIsZoomed] = useState(false)
   const [isSettingsPanelCollapsed, setIsSettingsPanelCollapsed] = useState(false)
   const [isOptimizing, setIsOptimizing] = useState(false)
-  
+  const [animatedBackground, setAnimatedBackground] = useState(false)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimatedBackground(prev => !prev)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
@@ -79,58 +88,87 @@ export function AiImageGenerator() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden relative">
+    <div 
+      className={`flex h-screen w-screen overflow-hidden relative 
+        transition-all duration-1000 ease-in-out
+        ${animatedBackground 
+          ? 'bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 animate-gradient-x' 
+          : 'bg-gradient-to-br from-purple-100 to-pink-100'}`}
+    >
       {/* 可收缩的左侧设置面板 */}
-      <div 
-        className={`bg-white border-r transition-all duration-300 ease-in-out overflow-y-auto relative
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className={`bg-white/90 backdrop-blur-sm border-r shadow-xl rounded-r-2xl 
+          transition-all duration-300 ease-in-out overflow-y-auto relative
           ${isSettingsPanelCollapsed ? 'w-16' : 'w-1/3'}`}
       >
         {/* 收缩/展开按钮 - 现在位于左侧面板的右上角 */}
         <Button 
           variant="ghost" 
           size="icon" 
-          className="absolute top-4 right-4 z-10"
+          className="absolute top-4 right-4 z-10 hover:bg-purple-100 transition-colors"
           onClick={() => setIsSettingsPanelCollapsed(!isSettingsPanelCollapsed)}
         >
-          {isSettingsPanelCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          {isSettingsPanelCollapsed ? <ChevronRight className="text-purple-600" /> : <ChevronLeft className="text-purple-600" />}
         </Button>
 
         {/* 设置内容 */}
         {!isSettingsPanelCollapsed && (
           <div className="p-6 space-y-4">
-            <h1 className="text-2xl font-bold mb-4">AI Image Generator</h1>
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600"
+            >
+              AI Image Generator
+            </motion.h1>
             
-            {/* Prompt 和其他设置保持不变 */}
+            {/* Prompt 区域 */}
             <div className="space-y-2">
-              <Label htmlFor="prompt">Prompt</Label>
+              <Label htmlFor="prompt" className="flex items-center">
+                <Sparkles className="mr-2 text-purple-500" size={16} />
+                Prompt
+              </Label>
               <Textarea
                 id="prompt"
                 placeholder="Describe the image you want to generate..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="min-h-[100px]"
+                className="min-h-[100px] focus:ring-2 focus:ring-purple-300 transition-all"
               />
               <Button 
                 onClick={handleOptimizePrompt}
                 variant="outline"
-                className="w-full"
+                className="w-full group hover:bg-purple-50 transition-colors"
                 disabled={isOptimizing || !prompt.trim()}
               >
                 {isOptimizing ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin text-purple-600" />
                     Optimizing...
                   </>
                 ) : (
-                  'Optimize Prompt'
+                  <>
+                    <Wand2 className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform text-purple-600" />
+                    Optimize Prompt
+                  </>
                 )}
               </Button>
             </div>
 
+            {/* 模型选择 */}
             <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
+              <Label htmlFor="model" className="flex items-center">
+                <Sparkles className="mr-2 text-pink-500" size={16} />
+                Model
+              </Label>
               <Select value={model} onValueChange={setModel}>
-                <SelectTrigger id="model">
+                <SelectTrigger 
+                  id="model" 
+                  className="hover:border-purple-300 focus:border-purple-500 transition-colors"
+                >
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
                 <SelectContent>
@@ -141,10 +179,12 @@ export function AiImageGenerator() {
               </Select>
             </div>
 
+            {/* 生成按钮 */}
             <Button 
               onClick={handleGenerate} 
               disabled={isGenerating || !prompt.trim()}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 
+                          transition-all duration-300 transform hover:scale-105 active:scale-95"
             >
               {isGenerating ? (
                 <>
@@ -157,73 +197,94 @@ export function AiImageGenerator() {
             </Button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* 图像展示区域 */}
-      <div 
-        className={`flex-grow bg-gray-50 p-6 flex flex-col items-center justify-center 
-        transition-all duration-300 ease-in-out overflow-auto
+      <motion.div 
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className={`flex-grow bg-white/80 backdrop-blur-sm p-6 flex flex-col items-center justify-center 
+        transition-all duration-300 ease-in-out overflow-auto rounded-l-2xl shadow-xl
         ${isSettingsPanelCollapsed ? 'w-full' : 'w-2/3'}`}
       >
-        {generatedImage ? (
-          <div className="relative max-w-full max-h-full">
-            <Image
-              src={generatedImage}
-              alt="Generated image"
-              width={512}
-              height={512}
-              className={`rounded-lg shadow-md transition-all duration-300 object-contain 
-                ${isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'}`}
-              onClick={() => setIsZoomed(!isZoomed)}
-            />
-            <div className="absolute top-2 right-2 space-x-2">
-              <Button
-                size="icon"
-                variant="secondary"
+        <AnimatePresence>
+          {generatedImage ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative max-w-full max-h-full"
+            >
+              <Image
+                src={generatedImage}
+                alt="Generated image"
+                width={512}
+                height={512}
+                className={`rounded-lg shadow-2xl transition-all duration-300 object-contain 
+                  ${isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'} 
+                  hover:shadow-purple-300/50`}
                 onClick={() => setIsZoomed(!isZoomed)}
-              >
-                {isZoomed ? (
-                  <Minimize2 className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                size="icon"
-                variant="secondary"
-                onClick={handleDownload}
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center text-gray-500">
-            {isGenerating ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-16 w-16 animate-spin mb-4" />
-                <p>Creating your masterpiece...</p>
+              />
+              <div className="absolute top-2 right-2 space-x-2">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="hover:bg-purple-100 transition-colors"
+                  onClick={() => setIsZoomed(!isZoomed)}
+                >
+                  {isZoomed ? (
+                    <Minimize2 className="h-4 w-4 text-purple-600" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4 text-purple-600" />
+                  )}
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="hover:bg-purple-100 transition-colors"
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4 text-purple-600" />
+                </Button>
               </div>
-            ) : (
-              <p>Your generated image will appear here</p>
-            )}
-          </div>
-        )}
-      </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-gray-500"
+            >
+              {isGenerating ? (
+                <div className="flex flex-col items-center">
+                  <Loader2 className="h-16 w-16 animate-spin mb-4 text-purple-600" />
+                  <p>Creating your masterpiece...</p>
+                </div>
+              ) : (
+                <p>Your generated image will appear here</p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* 底部版权和 GitHub 链接 */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center text-gray-500 text-sm">
-        <div className="flex items-center space-x-2">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute bottom-4 left-0 right-0 flex justify-center items-center text-gray-500 text-sm"
+      >
+        <div className="flex items-center space-x-2 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
           <span>© 2024 AI Image Generator</span>
           <Link 
             href="https://github.com/1137882300/cf-ai-pic" 
             target="_blank" 
-            className="hover:text-gray-700 transition-colors"
+            className="hover:text-purple-700 transition-colors group"
           >
-            <Github size={20} />
+            <Github size={20} className="group-hover:scale-110 transition-transform" />
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
