@@ -101,10 +101,10 @@ export function AiImageGenerator() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
         className={`bg-white/90 backdrop-blur-sm border-r shadow-xl rounded-r-2xl 
-          transition-all duration-300 ease-in-out overflow-y-auto relative
-          ${isSettingsPanelCollapsed ? 'w-16' : 'w-1/3'}`}
+          transition-all duration-300 ease-in-out overflow-y-auto relative flex flex-col
+          ${isSettingsPanelCollapsed ? 'w-16 items-center' : 'w-1/3'}`}
       >
-        {/* 收缩/展开按钮 - 现在位于左侧面板的右上角 */}
+        {/* 收缩/展开按钮 */}
         <Button 
           variant="ghost" 
           size="icon" 
@@ -113,6 +113,46 @@ export function AiImageGenerator() {
         >
           {isSettingsPanelCollapsed ? <ChevronRight className="text-purple-600" /> : <ChevronLeft className="text-purple-600" />}
         </Button>
+
+        {/* 收缩状态下的最小化内容 */}
+        {isSettingsPanelCollapsed && (
+          <div className="flex flex-col items-center mt-16 space-y-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileTap={{ scale: 0.9 }}
+              className={`
+                ${isOptimizing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-purple-200 active:bg-purple-300'}
+                bg-purple-100 p-2 rounded-full transition-colors
+              `}
+              onClick={!isOptimizing ? handleOptimizePrompt : undefined}
+            >
+              {isOptimizing ? (
+                <Loader2 className="text-purple-600 animate-spin" size={24} />
+              ) : (
+                <Wand2 className="text-purple-600" size={24} />
+              )}
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileTap={{ scale: 0.9 }}
+              className="bg-pink-100 p-2 rounded-full cursor-pointer hover:bg-pink-200 active:bg-pink-300 transition-colors"
+              onClick={() => setIsSettingsPanelCollapsed(false)}
+            >
+              <Sparkles className="text-pink-600" size={24} />
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileTap={{ scale: 0.9 }}
+              className="bg-blue-100 p-2 rounded-full cursor-pointer hover:bg-blue-200 active:bg-blue-300 transition-colors"
+              onClick={handleDownload}
+            >
+              <Download className="text-blue-600" size={24} />
+            </motion.div>
+          </div>
+        )}
 
         {/* 设置内容 */}
         {!isSettingsPanelCollapsed && (
